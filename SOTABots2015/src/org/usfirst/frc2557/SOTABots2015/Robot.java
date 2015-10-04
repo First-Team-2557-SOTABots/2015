@@ -12,6 +12,7 @@
 package org.usfirst.frc2557.SOTABots2015;
 
 import edu.wpi.first.wpilibj.DigitalOutput;
+import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.command.Command;
 import edu.wpi.first.wpilibj.command.Scheduler;
@@ -31,16 +32,18 @@ import org.usfirst.frc2557.SOTABots2015.subsystems.*;
 public class Robot extends IterativeRobot {
 
     
-	Command autonomous;
+	Command autonomousFirst;
+	Command autonomousSecond;
+	Command autonomousThird;
     Command drive;
     Command dashboard;
     Command gyroReset;
     Command radarCommand;
     Command intake;
     Command lift;
-    Command liftTest;
     Command init;
     Command warning;
+    Command autoStack;
     
 
     public static OI oi;
@@ -55,12 +58,14 @@ public class Robot extends IterativeRobot {
     public static Pnuematics pnuematics;
     public static Manipulator manipulator;
     public static HallEffect hallEffect;
+    public static MomentarySensors momentary;
+    public static Encoders encoders;
     /**
      * This function is run when the robot is first started up and should be
      * used for any initialization code.
      */
     public void robotInit() {
-    RobotMap.init();
+    	RobotMap.init();
         driveWithJoystick = new DriveTrain();
 
         // Create a counter to tie degrees and rangefinder collection
@@ -79,17 +84,21 @@ public class Robot extends IterativeRobot {
         pnuematics = new Pnuematics();
         manipulator = new Manipulator();
         hallEffect = new HallEffect();
+        momentary = new MomentarySensors();
+        encoders = new Encoders();
         
 //Command Initializers (must be second)
         radarCommand = new RadarCommand();
         gyroReset = new GyroReset();
         dashboard = new Dashboard();
-        autonomous = new Autonomous();
-        intake = new IntakeTest();
-        lift = new LiftUp();
-        liftTest = new LiftTest();
+        autonomousFirst = new AutonomousMain();
+        autonomousSecond = new AutonomousSecond();
+        autonomousThird = new AutonomousThird();
+        intake = new Intake();
+        lift = new Lift();
         init = new AutoInitialize();
         warning = new LiftWarning();
+        autoStack=new AutoStack();
         // OI must be constructed after subsystems. If the OI creates Commands 
         //(which it very likely will), subsystems are not guaranteed to be 
         // constructed yet. Thus, their requires() statements may grab null 
@@ -114,9 +123,13 @@ public class Robot extends IterativeRobot {
     public void autonomousInit() {
         // schedule the autonomous command (example)
     	
-        if (autonomous != null) autonomous.start();
-        gyroReset.start();
-        
+//        if (autonomousFirst != null) autonomousFirst.start();
+        if (RobotMap.autoSwitch.get() == true){
+        	autonomousFirst.start();
+        }
+        else if(RobotMap.autoSwitch.get() == false){
+        	autonomousSecond.start();
+        }
         
     }
 
@@ -139,8 +152,15 @@ public class Robot extends IterativeRobot {
         // teleop starts running. If you want the autonomous to 
         // continue until interrupted by another command, remove
         // this line or comment it out.
-        if (autonomous != null) autonomous.cancel();
-        gyroReset.start();
+//        if (autonomous != null) autonomous.cancel();
+    	if (autonomousFirst != null && RobotMap.autoSwitch.get()){
+        	autonomousFirst.cancel();
+        }
+        else if(autonomousSecond != null && RobotMap.autoSwitch.get() == false){
+        	autonomousSecond.cancel();
+        }
+    	gyroReset.start();
+        
     }
 
     /**
@@ -150,13 +170,25 @@ public class Robot extends IterativeRobot {
         Scheduler.getInstance().run();
         drive.start();
         dashboard.start();
-        radarCommand.start();
-        //intake.start();
-        liftTest.start();
+//        radarCommand.start();
+        intake.start();
+        lift.start();
         warning.start();
         SmartDashboard.putBoolean("The Lift sensor is reading",RobotMap.liftStop.get());
-        RobotMap.intakeMotors.set(-oi.XboxController1.getRawAxis(5));
-        
+        RobotMap.intakeMotors.set(-oi.gamepad1.getRawAxis(5));
+        SmartDashboard.putBoolean("AutoSwitch ", RobotMap.autoSwitch.get());
+//        if(RobotMap.liftSensor.get() == true && RobotMap.liftMotor.get() > 0){
+//        	RobotMap.stackCount = RobotMap.stackCount + 1;
+//        }
+//        else if(RobotMap.liftSensor.get() == true && RobotMap.liftMotor.get() < 0 && RobotMap.stackCount > 0){
+//        	RobotMap.stackCount -= 1;
+//        }
+//        if(RobotMap.liftStop.get() == true){
+//        	RobotMap.stackCount = 0;
+//        }
+//        if(RobotMap.toteStop.get() == false && RobotMap.stackCount != RobotMap.level2){
+//        	autoStack.start();
+//        }
         // Need to create a sub here that will perform the calculations for each reading Based on the variables.
     }
 

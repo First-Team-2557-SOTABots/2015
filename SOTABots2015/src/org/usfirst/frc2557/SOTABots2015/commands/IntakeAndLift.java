@@ -27,10 +27,10 @@ public class IntakeAndLift extends CommandGroup {
         // a CommandGroup containing them would require both the chassis and the
         // arm.
     	addSequential(new IntakeIn());
-    	addSequential(new AutoLiftDown());
+    	addSequential(new AutoLiftDown(3));
     	addSequential(new Grab());
     }
     protected boolean isFinished(){
-    	return Robot.oi.XboxController1.getRawButton(3);
+    	return Robot.oi.gamepad1.getRawButton(3);
     }
 }
